@@ -1,0 +1,30 @@
+services:
+  mongo_db:
+    image: mongo:5.0.2
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=$MONGODB_USER
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGODB_PASSWORD
+    ports:
+      - $MONGODB_LOCAL_PORT:$MONGODB_DOCKER_PORT
+    volumes:
+      - db:/data/db
+
+  app:
+    image: "$DOCKER_REPOSITORY/jokes-crisc:v1"
+    container_name: jokes-ms
+    ports:
+      - $APP_LOCAL_PORT:$APP_DOCKER_PORT
+    depends_on:
+      - mongo_db
+    environment:
+          SPRING_APPLICATION_JSON: '{
+              "spring.data.mongodb.uri" : "mongodb://$MONGODB_USER:$MONGODB_PASSWORD@mongo_db:$MONGODB_DOCKER_PORT/$MONGODB_DATABASE?authSource=admin"
+            }'
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+
+volumes:
+  db:

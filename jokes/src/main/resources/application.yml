@@ -1,0 +1,14 @@
+server:
+  port: 8080
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://root:123456@localhost:27017/testdb?authSource=admin # URI used for local testing
+
+jokes-api:
+  request:
+    endpoint: https://official-joke-api.appspot.com/random_joke
+    fetch:
+      batch:
+        size: 10
