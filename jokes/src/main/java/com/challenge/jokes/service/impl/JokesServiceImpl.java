@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 /**
  * {@inheritDoc}
@@ -53,7 +52,16 @@ public class JokesServiceImpl implements IJokesService {
      * {@inheritDoc}
      */
     @Override
-    public void saveJoke(JokeDTO jokeDTO) {
+    public void saveJokes(List<JokeDTO> jokesDTOList) {
+        jokesDTOList.forEach(this::saveJoke);
+    }
+
+    /**
+     * Save joke
+     *
+     * @param jokeDTO the joke to be saved
+     */
+    private void saveJoke(JokeDTO jokeDTO) {
         Joke joke = new Joke(jokeDTO.id(), jokeDTO.type(), jokeDTO.setup(), jokeDTO.punchline());
         log.info("saveJoke(..) - Save joke: {}", joke);
         jokesRepository.save(joke);
@@ -95,10 +103,8 @@ public class JokesServiceImpl implements IJokesService {
      *
      * @param count the number of jokes to be retrieved
      * @return the retrieved jokes list
-     * @throws ExecutionException   exception thrown during the execution of the async operation
-     * @throws InterruptedException exception thrown if execution thread is interrupted
      */
-    private List<JokeDTO> fetchJokesInBatches(int count) throws ExecutionException, InterruptedException {
+    private List<JokeDTO> fetchJokesInBatches(int count) {
 
         log.info("fetchJokesInBatches(..) - Retrieve {} jokes in batches of {}", count, requestBatchSize);
 
@@ -120,10 +126,8 @@ public class JokesServiceImpl implements IJokesService {
      *
      * @param chunkSize the processing chunk (batch) size
      * @return the retrieved jokes for the processed batch
-     * @throws InterruptedException the interrupted exception
-     * @throws ExecutionException   the execution exception
      */
-    private List<JokeDTO> fetchBatchOfJokes(int chunkSize) throws InterruptedException, ExecutionException {
+    private List<JokeDTO> fetchBatchOfJokes(int chunkSize) {
 
         log.info("fetchBatchOfJokes(..) - Retrieve batch of {} jokes", chunkSize);
 
@@ -133,11 +137,7 @@ public class JokesServiceImpl implements IJokesService {
             retrievedListFuture.add(
                     CompletableFuture.supplyAsync(jokesServiceClient::fetchJoke));
         }
-        // collect results
-        final List<JokeDTO> retrievedList = new ArrayList<>();
-        for (CompletableFuture<JokeDTO> jokeFuture : retrievedListFuture) {
-            retrievedList.add(jokeFuture.get());
-        }
-        return retrievedList;
+        // collect and return results
+        return retrievedListFuture.stream().map(CompletableFuture::join).toList();
     }
 }

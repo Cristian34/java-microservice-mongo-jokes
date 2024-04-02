@@ -4,6 +4,7 @@ import com.challenge.jokes.dto.JokeDTO;
 import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.client.RestClient;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,16 +17,13 @@ class JokesApiClientImplIT {
 
     private static final String API_ENDPOINT = "https://official-joke-api.appspot.com/random_joke";
 
-    private final JokesApiClientImpl jokesApiClient = new JokesApiClientImpl();
+    private final JokesApiClientImpl jokesApiClient = new JokesApiClientImpl(RestClient.create(API_ENDPOINT));
 
     /**
      * Verify the joke returned from the external source
      */
     @Test
     void shouldFetchJoke() {
-
-        // Given
-        jokesApiClient.setApiEndpoint(API_ENDPOINT);
 
         // When
         JokeDTO jokeDTO = jokesApiClient.fetchJoke();

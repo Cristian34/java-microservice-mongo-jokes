@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,8 +19,7 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler({ConstraintViolationException.class})
-    public ResponseEntity<Object> handleConstraintViolation(
-            ConstraintViolationException ex, WebRequest request) {
+    public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex) {
 
         List<String> errors = new ArrayList<>();
         ex.getConstraintViolations().forEach(v -> errors.add(v.getMessage()));
@@ -31,7 +29,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleGlobalException(
-            Exception exception, WebRequest webRequest) {
+            Exception exception) {
 
         ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
                 exception.getMessage(),

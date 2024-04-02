@@ -18,10 +18,11 @@ public interface IJokesService {
     List<JokeDTO> fetchJokesExternalApi(int count);
 
     /**
-     * Store the provided joke
+     * Stores the provided list of jokes
      *
-     * @param jokeDTO the joke to save
+     * @param jokesDTOList
+     *          the list of jokes to be saved
      */
-    void saveJoke(JokeDTO jokeDTO);
+    void saveJokes(List<JokeDTO> jokesDTOList);
 
 }

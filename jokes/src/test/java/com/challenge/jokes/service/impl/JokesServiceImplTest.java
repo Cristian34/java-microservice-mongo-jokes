@@ -22,6 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(MockitoExtension.class)
 class JokesServiceImplTest {
 
+    private static final String TYPE = "type";
+    public static final String SETUP = "setup";
+    public static final String PUNCHLINE = "punchline";
+
     @InjectMocks
     private JokesServiceImpl jokesService;
 
@@ -40,23 +44,21 @@ class JokesServiceImplTest {
     @Test
     void shouldSaveJokeInsideRepository() {
 
-        final long jokeId = 1L;
-        final String jokeType = "type";
-        final String jokeSetup = "setup";
-        final String jokePunchline = "punchline";
-
-        // Given
-        JokeDTO jokeDTO = new JokeDTO(1L, jokeType, jokeSetup, jokePunchline);
-
         // When
-        jokesService.saveJoke(jokeDTO);
+        jokesService.saveJokes(List.of(createJokeDTO(1), createJokeDTO(2), createJokeDTO(3)));
 
         // Then
-        Mockito.verify(jokesRepository, Mockito.times(1)).save(jokeDTOArgumentCaptor.capture());
-        Joke savedJoke = jokeDTOArgumentCaptor.getValue();
-        assertEquals(savedJoke.getJokeId(), jokeId, "Unexpected joke id");
-        assertEquals(savedJoke.getType(), jokeType, "Unexpected joke type");
-        assertEquals(savedJoke.getPunchLine(), jokePunchline, "Unexpected joke punchline");
+        Mockito.verify(jokesRepository, Mockito.times(3)).save(jokeDTOArgumentCaptor.capture());
+        List<Joke> savedJokes = jokeDTOArgumentCaptor.getAllValues();
+        assertEquals(3, savedJokes.size(), "Unexpected size for the list of saved jokes");
+
+        for (int index = 1; index <= 3; index++) {
+            final int currentIndex = index;
+            Joke savedJoke = savedJokes.stream()
+                    .filter(v -> v.getJokeId() == currentIndex).findFirst()
+                    .orElse(new Joke(null, null, null, null));
+            checkJokeModel(createJokeDocument(index), savedJoke);
+        }
     }
 
     /**
@@ -140,14 +142,29 @@ class JokesServiceImplTest {
         int invalidNumber = -1;
 
         // When - Then
-        final Exception ex = assertThrows(IllegalArgumentException.class,
-                () -> jokesService.fetchJokesExternalApi(invalidNumber));
+        assertThrows(IllegalArgumentException.class, () -> jokesService.fetchJokesExternalApi(invalidNumber));
+    }
+
+    public void checkJokeModel(Joke expectedJoke, Joke jokeToCheck) {
+        assertEquals(expectedJoke.getJokeId(), jokeToCheck.getJokeId(), "Unexpected joke id for joke:"
+                + expectedJoke.getJokeId());
+        assertEquals(expectedJoke.getType(), jokeToCheck.getType(), "Unexpected joke type for joke:"
+                + expectedJoke.getJokeId());
+        assertEquals(expectedJoke.getPunchLine(), jokeToCheck.getPunchLine(), "Unexpected joke punch line for joke:"
+                + expectedJoke.getJokeId());
     }
 
     private JokeDTO createJokeDTO(int index) {
-        final String jokeType = "type" + index;
-        final String jokeSetup = "setup" + index;
-        final String jokePunchline = "punchline" + index;
+        final String jokeType = TYPE + index;
+        final String jokeSetup = SETUP + index;
+        final String jokePunchline = PUNCHLINE + index;
         return new JokeDTO((long) index, jokeType, jokeSetup, jokePunchline);
+    }
+
+    private Joke createJokeDocument(int index) {
+        final String jokeType = TYPE + index;
+        final String jokeSetup = SETUP + index;
+        final String jokePunchline = PUNCHLINE + index;
+        return new Joke((long) index, jokeType, jokeSetup, jokePunchline);
     }
 }

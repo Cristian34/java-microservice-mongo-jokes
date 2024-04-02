@@ -46,7 +46,7 @@ public class JokesController {
 
         final List<JokeDTO> jokesDTOList = jokesService.fetchJokesExternalApi(count);
 
-        jokesDTOList.forEach(jokesService::saveJoke);
+        jokesService.saveJokes(jokesDTOList);
 
         return ResponseEntity.status(HttpStatus.OK).body(
                 new ResponseDTO(String.format(MSG_JOKES_RETRIEVED, count), jokesDTOList));
